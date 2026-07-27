@@ -2,7 +2,7 @@
 
 Source repository audited: <https://github.com/mhamzahashim/wittyform>
 
-Audited local branch: `beta` in `/etc/dokploy/applications/wittyform-wittyformstagging-i1osyy/code`.
+Audited local branch: `beta` in `/etc/dokploy/applications/wittyform-wittyformstagging-i1osyy/code`. Manual QA quiz target: `https://wittyform.com` (main production website), using dedicated QA data only.
 
 This audit summarizes source-verified WittyForm features used to create the manual QA checklist. The goal is to test implemented behavior only; setup-heavy features are included as **Setup required** instead of inventing credentials or external state.
 
@@ -23,7 +23,7 @@ This audit summarizes source-verified WittyForm features used to create the manu
 
 | Feature | Route or screen | Source files | Status | Manual testable? | Setup/account required | Critical journey to test |
 |---|---|---|---|---|---|---|
-| Sign up, sign in, sign out | `/sign-up`, `/sign-in`, dashboard account menu | `app/sign-up/[[...sign-up]]/page.tsx`, `app/sign-in/[[...sign-in]]/page.tsx`, `middleware.ts`, `app/(dashboard)/layout-client.tsx` | Fully implemented via Clerk UI | Yes | Clerk/beta QA account | Sign in, load dashboard, sign out, verify protected routes redirect when signed out |
+| Sign up, sign in, sign out | `/sign-up`, `/sign-in`, dashboard account menu | `app/sign-up/[[...sign-up]]/page.tsx`, `app/sign-in/[[...sign-in]]/page.tsx`, `middleware.ts`, `app/(dashboard)/layout-client.tsx` | Fully implemented via Clerk UI | Yes | Dedicated WittyForm production QA account | Sign in, load dashboard, sign out, verify protected routes redirect when signed out |
 | Dashboard overview | `/dashboard` | `app/(dashboard)/dashboard/page.tsx`, `app/api/dashboard/stats/route.ts`, `src/shared/lib/supabase/v3-hooks` | Implemented | Yes | Signed-in workspace | Confirm stats/recent forms/recent responses render or clear empty states |
 | Workspace selection/create | Sidebar workspace switcher | `src/shared/lib/workspace-context.tsx`, `src/shared/ui/terrace/layout/sidebar.tsx`, `app/api/workspaces/route.ts` | Implemented with plan limits | Yes | Signed-in account; extra workspaces may require Enterprise | Switch workspace and verify data isolation; create QA workspace only if allowed |
 | Team invitations and roles | `/team`, `/invite/[token]` | `app/(dashboard)/team/page.tsx`, `app/api/workspaces/[id]/members/route.ts`, `app/api/workspaces/[id]/invites/route.ts`, `app/api/workspaces/invites/[token]/route.ts`, `app/invite/[token]/invite-client.tsx` | Implemented; paid/permission gated | Yes | Paid plan, admin/owner permission, second verified email | Invite viewer/editor/admin, accept invite, verify permissions and cleanup |
@@ -83,4 +83,4 @@ The repository includes extensive Vitest and Playwright coverage, including but 
 - CRM, workspace, invite, API key, integrations, webhooks, payment, offline, domain, branding, and security tests
 - Playwright E2E smoke/regression suites with target-safety guards that prevent accidental production mutation
 
-Manual QA complements these suites by checking the real staging UI and external setup-dependent journeys.
+Manual QA complements these suites by checking the real production UI and external setup-dependent journeys.
