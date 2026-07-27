@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WittyForm QA Daily Checklist</title>
+  <meta name="description" content="Daily manual QA checklist for WittyForm staging, derived from verified WittyForm source code features.">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+  <style>
+    :root {
+      --accent: #b45309;
+      --accent-hover: #92400e;
+      --accent-soft: rgba(180, 83, 9, 0.12);
+      --accent-pale: #fff7ed;
+      --bg: #f7f5f0;
+      --card: #fffdf8;
+      --surface: #f2eee7;
+      --text: #1a1814;
+      --muted: #686258;
+      --subtle: #8b8173;
+      --border: #e4e0d8;
+      --border-strong: #d6cec0;
+      --success: #15803d;
+      --success-bg: #dcfce7;
+      --danger: #b91c1c;
+      --danger-bg: #fee2e2;
+      --skip: #52525b;
+      --skip-bg: #e4e4e7;
+      --warning: #a16207;
+      --warning-bg: #fef3c7;
+      --info: #1d4ed8;
+      --info-bg: #dbeafe;
+      --shadow: 0 14px 40px rgba(26, 24, 20, 0.08);
+      --radius-xl: 24px;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --focus: 0 0 0 3px rgba(180, 83, 9, 0.24);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(180, 83, 9, 0.13), transparent 32rem),
+        linear-gradient(180deg, #fffaf0 0%, var(--bg) 38%, #f4f0e8 100%);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); font-weight: 700; text-underline-offset: 3px; }
+    a:hover { color: var(--accent-hover); }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: 0.6; }
+    :focus-visible { outline: none; box-shadow: var(--focus); }
+
+    .page {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 22px 0 48px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--radius-xl);
+      padding: clamp(26px, 5vw, 48px);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(255,255,255,.32), transparent 18rem),
+        linear-gradient(135deg, #1a1814 0%, #6b3a12 50%, var(--accent) 100%);
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      background: rgba(255,255,255,.12);
+    }
+    .hero::before { width: 190px; height: 190px; right: -64px; top: -78px; }
+    .hero::after { width: 130px; height: 130px; left: -36px; bottom: -54px; }
+    .hero-content { position: relative; z-index: 1; display: grid; gap: 20px; grid-template-columns: 1fr; }
+    .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: .78rem; font-weight: 800; opacity: .82; margin: 0 0 8px; }
+    h1 { margin: 0; font-size: clamp(2rem, 5vw, 4.4rem); line-height: .94; letter-spacing: -0.055em; }
+    .tagline { max-width: 760px; margin: 14px 0 0; color: rgba(255,255,255,.86); font-size: clamp(1rem, 2vw, 1.16rem); line-height: 1.55; }
+    .hero-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 20px; }
+    .pill, .date-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.18);
+      color: #fff;
+      backdrop-filter: blur(12px);
+      font-size: .92rem;
+      font-weight: 750;
+    }
+    .date-control input {
+      color-scheme: dark;
+      color: #fff;
+      background: transparent;
+      border: 0;
+      font-weight: 750;
+      min-width: 138px;
+    }
+    .date-control input:focus-visible { box-shadow: none; outline: 1px solid rgba(255,255,255,.65); border-radius: 6px; }
+
+    .top-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 16px;
+      margin: 18px 0;
+    }
+    @media (min-width: 900px) {
+      .top-grid { grid-template-columns: 1.25fr .75fr; }
+    }
+
+    .card {
+      background: rgba(255,253,248,.88);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .progress-card { padding: 20px; }
+    .progress-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 12px; }
+    .progress-head h2 { margin: 0; font-size: 1.04rem; }
+    .progress-pct { font-size: clamp(1.8rem, 4vw, 2.7rem); font-weight: 900; color: var(--accent); letter-spacing: -.06em; }
+    .progress-track { height: 14px; background: var(--surface); border-radius: 999px; overflow: hidden; border: 1px solid var(--border); }
+    .progress-fill { height: 100%; width: 0%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), #d97706); transition: width .35s ease; }
+    .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 14px; }
+    @media (min-width: 640px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+    .stat { border-radius: 13px; padding: 12px; background: var(--surface); border: 1px solid var(--border); }
+    .stat strong { display: block; font-size: 1.45rem; line-height: 1; margin-bottom: 4px; }
+    .stat span { color: var(--muted); font-size: .82rem; font-weight: 750; }
+    .stat.pass { background: var(--success-bg); color: var(--success); border-color: rgba(21,128,61,.22); }
+    .stat.fail { background: var(--danger-bg); color: var(--danger); border-color: rgba(185,28,28,.22); }
+    .stat.skip { background: var(--skip-bg); color: var(--skip); border-color: rgba(82,82,91,.18); }
+    .stat.unfinished { background: var(--warning-bg); color: var(--warning); border-color: rgba(161,98,7,.2); }
+
+    .instructions { padding: 20px; }
+    .instructions h2 { margin: 0 0 10px; font-size: 1.04rem; }
+    .instructions p { margin: 0 0 10px; color: var(--muted); line-height: 1.55; font-size: .94rem; }
+    .instructions ul { margin: 0; padding-left: 19px; color: var(--muted); line-height: 1.55; }
+
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin: 18px 0; }
+    .toolbar-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .btn {
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      background: var(--card);
+      color: var(--text);
+      min-height: 40px;
+      padding: 9px 14px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform .12s ease, background .12s ease, color .12s ease, border-color .12s ease;
+    }
+    .btn:hover { transform: translateY(-1px); background: #fff; border-color: var(--accent); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+    .btn.danger { color: var(--danger); border-color: rgba(185,28,28,.25); background: var(--danger-bg); }
+    .btn.small { min-height: 32px; padding: 7px 11px; font-size: .82rem; }
+
+    .section { margin-bottom: 16px; overflow: hidden; }
+    .section-header {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      gap: 12px;
+      align-items: center;
+      text-align: left;
+      padding: 18px 18px;
+      color: inherit;
+    }
+    .section-header:hover { background: rgba(180,83,9,.04); }
+    .section-num {
+      width: 40px; height: 40px; border-radius: 12px;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 900;
+      background: linear-gradient(135deg, var(--accent), #d97706);
+    }
+    .section-title h2 { margin: 0; font-size: 1.08rem; letter-spacing: -.02em; }
+    .section-title p { margin: 3px 0 0; color: var(--muted); font-size: .86rem; line-height: 1.4; }
+    .section-counter { border-radius: 999px; padding: 5px 11px; background: var(--surface); color: var(--muted); font-size: .78rem; font-weight: 900; white-space: nowrap; }
+    .section-counter.done { background: var(--success-bg); color: var(--success); }
+    .chevron { color: var(--subtle); transition: transform .2s ease; font-weight: 900; }
+    .section[data-collapsed="true"] .chevron { transform: rotate(-90deg); }
+    .section-body { display: grid; gap: 13px; padding: 0 18px 18px; }
+    .section[data-collapsed="true"] .section-body { display: none; }
+
+    .test {
+      position: relative;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+    .test::before { content: ""; position: absolute; left: 0; top: 15px; bottom: 15px; width: 4px; border-radius: 999px; background: var(--border-strong); }
+    .test[data-status="pass"]::before { background: var(--success); }
+    .test[data-status="fail"]::before { background: var(--danger); }
+    .test[data-status="skip"]::before { background: var(--skip); }
+    .test-header { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; justify-content: space-between; }
+    .test h3 { margin: 0; font-size: 1.02rem; letter-spacing: -.02em; }
+    .why { margin: 5px 0 0; color: var(--muted); line-height: 1.48; font-size: .92rem; }
+    .status-badge { border-radius: 999px; padding: 5px 10px; font-size: .75rem; font-weight: 900; background: var(--surface); color: var(--muted); white-space: nowrap; }
+    .status-badge.pass { background: var(--success-bg); color: var(--success); }
+    .status-badge.fail { background: var(--danger-bg); color: var(--danger); }
+    .status-badge.skip { background: var(--skip-bg); color: var(--skip); }
+
+    .meta-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    @media (min-width: 760px) { .meta-grid { grid-template-columns: 1fr 1fr; } }
+    .meta-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px; color: var(--muted); font-size: .86rem; line-height: 1.45; }
+    .meta-box strong { color: var(--text); display: block; margin-bottom: 2px; }
+    .meta-box.warning { background: var(--warning-bg); border-color: rgba(161,98,7,.2); color: #6b4a05; }
+    .meta-box.link { background: #fff; }
+
+    details.test-details { border-top: 1px solid var(--border); padding-top: 8px; }
+    details.test-details summary { cursor: pointer; font-weight: 850; color: var(--accent); margin-bottom: 8px; }
+    .steps { margin: 8px 0 0; padding-left: 22px; color: var(--text); line-height: 1.55; }
+    .steps li { margin: 5px 0; }
+    .expected { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--accent-pale); border: 1px solid rgba(180,83,9,.18); color: #5f2f08; line-height: 1.5; font-size: .9rem; }
+    .expected strong { color: #431d04; }
+
+    .verdict { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .verdict .choice { border-radius: 999px; border: 1px solid var(--border-strong); background: #fff; padding: 8px 12px; font-weight: 900; min-width: 86px; }
+    .choice.pass.active, .choice.pass[aria-pressed="true"] { background: var(--success); border-color: var(--success); color: #fff; }
+    .choice.fail.active, .choice.fail[aria-pressed="true"] { background: var(--danger); border-color: var(--danger); color: #fff; }
+    .choice.skip.active, .choice.skip[aria-pressed="true"] { background: var(--skip); border-color: var(--skip); color: #fff; }
+    .notes label { display: block; margin-bottom: 6px; color: var(--muted); font-weight: 800; font-size: .84rem; }
+    .notes textarea { width: 100%; min-height: 74px; resize: vertical; border: 1px solid var(--border-strong); border-radius: 12px; padding: 10px; background: #fff; color: var(--text); line-height: 1.45; }
+
+    .summary-card { padding: 18px; margin-top: 18px; }
+    .summary-card h2 { margin: 0 0 12px; }
+    .summary-list { display: grid; gap: 8px; }
+    .summary-row { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 9px 10px; border: 1px solid var(--border); border-radius: 12px; background: #fff; }
+    .summary-note { grid-column: 2 / -1; color: var(--danger); font-size: .85rem; line-height: 1.45; white-space: pre-wrap; }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 20;
+      max-width: min(420px, calc(100vw - 36px));
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: #1a1814;
+      color: #fff;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+      font-weight: 800;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    .footer { color: var(--muted); text-align: center; margin-top: 22px; font-size: .88rem; }
+
+    @media (max-width: 680px) {
+      .page { width: min(100% - 18px, 1180px); padding-top: 10px; }
+      .hero { border-radius: 18px; }
+      .section-header { grid-template-columns: auto 1fr auto; }
+      .section-counter { grid-column: 2; width: max-content; }
+      .chevron { grid-column: 3; grid-row: 1; }
+      .verdict .choice { flex: 1; min-width: 82px; }
+      .toolbar-actions .btn { width: 100%; }
+      .toolbar-actions { width: 100%; }
+    }
+
+    @media print {
+      body { background: #fff; color: #111; }
+      .hero, .top-grid, .toolbar, .sections, .footer, .toast { display: none !important; }
+      .page { width: 100%; padding: 0; }
+      #printReport { display: block !important; }
+    }
+
+    #printReport { display: none; }
+    .print-report { padding: 24px; font-family: Arial, sans-serif; }
+    .print-report h1 { color: #111; font-size: 28px; letter-spacing: 0; line-height: 1.2; }
+    .print-report h2 { font-size: 18px; margin-top: 22px; }
+    .print-report table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 12px; }
+    .print-report th, .print-report td { border: 1px solid #ddd; padding: 7px; text-align: left; vertical-align: top; }
+    .print-report th { background: #f5f5f5; }
+    .print-note { color: #b91c1c; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <div class="hero-content">
+        <div>
+          <p class="eyebrow">WittyForm QA</p>
+          <h1>Daily manual checklist</h1>
+          <p class="tagline">A staging-safe checklist for the critical WittyForm journeys verified in the source code: forms, quizzes, publishing, responses, workspaces, integrations, CRM, ecommerce, and advanced plan-gated features.</p>
+          <div class="hero-tools" aria-label="Checklist date and environment">
+            <span class="pill" id="friendlyDate">Today</span>
+            <label class="date-control">QA date <input id="qaDate" type="date" aria-label="Choose QA checklist date"></label>
+            <span class="pill">Environment: <strong>beta.wittyform.com</strong></span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="top-grid">
+      <section class="card progress-card" aria-labelledby="progressTitle">
+        <div class="progress-head">
+          <h2 id="progressTitle">Today's progress</h2>
+          <span class="progress-pct" id="progressPct">0%</span>
+        </div>
+        <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="stats" aria-label="Daily status counts">
+          <div class="stat pass"><strong id="passCount">0</strong><span>Passed</span></div>
+          <div class="stat fail"><strong id="failCount">0</strong><span>Failed</span></div>
+          <div class="stat skip"><strong id="skipCount">0</strong><span>Skipped</span></div>
+          <div class="stat unfinished"><strong id="unfinishedCount">0</strong><span>Unfinished</span></div>
+        </div>
+      </section>
+
+      <aside class="card instructions" aria-labelledby="howToUseTitle">
+        <h2 id="howToUseTitle">How to use this checklist</h2>
+        <p>Run destructive tests only on <strong>beta.wittyform.com</strong>. Use test accounts and test data. Do not send to real customers or connect live paid production integrations.</p>
+        <ul>
+          <li>Mark each test Pass, Fail, or Skip.</li>
+          <li>Add notes for anything confusing, blocked, or broken.</li>
+          <li>Your progress saves automatically per calendar date in this browser.</li>
+        </ul>
+      </aside>
+    </div>
+
+    <div class="toolbar" aria-label="Checklist actions">
+      <div>
+        <strong id="totalTestsLabel">0 tests</strong>
+        <span style="color:var(--muted)"> · Daily results are stored locally by date.</span>
+      </div>
+      <div class="toolbar-actions">
+        <button type="button" class="btn" id="copyBtn">Copy results</button>
+        <button type="button" class="btn primary" id="pdfBtn">Download PDF report</button>
+        <button type="button" class="btn danger" id="resetBtn">Reset this date</button>
+      </div>
+    </div>
+
+    <div class="sections" id="sections" aria-live="polite"></div>
+
+    <section class="card summary-card" aria-labelledby="summaryTitle">
+      <h2 id="summaryTitle">Daily results summary</h2>
+      <div id="summaryList" class="summary-list"></div>
+    </section>
+
+    <section id="printReport" class="print-report" aria-hidden="true"></section>
+
+    <p class="footer">WittyForm QA Checklist · Source-derived manual QA for staging</p>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const BASE = 'https://beta.wittyform.com';
+    const CHECKLIST_SECTIONS = [
+      {
+        id: 'daily-smoke',
+        title: 'Critical daily smoke tests',
+        subtitle: 'Confirm the most important form-builder and public-submission path works end to end.',
+        tests: [
+          {
+            id: 'auth-dashboard-loads',
+            title: 'Sign in and open the dashboard',
+            why: 'Every dashboard feature depends on Clerk sign-in, workspace bootstrap, and the Terrace/V3 dashboard layout loading successfully.',
+            link: `${BASE}/sign-in`,
+            data: 'Use a dedicated WittyForm beta QA account. Do not use a production customer account.',
+            setup: 'Setup required if no beta QA credentials are available.',
+            steps: [
+              'Open the sign-in page in a private/incognito browser window.',
+              'Sign in with the beta QA account.',
+              'Confirm you land on the dashboard or can open Dashboard from the sidebar.',
+              'Check that the workspace switcher, left navigation, and top account menu are visible.',
+              'Use the account menu to sign out, then sign back in once more.'
+            ],
+            expected: 'The dashboard loads without an error screen, a workspace is selected, navigation is visible, and sign-out/sign-in works.'
+          },
+          {
+            id: 'create-blank-form',
+            title: 'Create a blank form',
+            why: 'Form creation is the core owner journey and verifies the /forms/new screen, workspace ownership, and form editor routing.',
+            link: `${BASE}/forms/new`,
+            data: 'Form name: “QA Daily Smoke — {date}”. Description: “Created by the daily checklist; safe to delete.”',
+            cleanup: 'Move the form to Trash after the smoke test, or keep it only if a failure needs investigation.',
+            steps: [
+              'Open Forms, then choose New Form or Start from scratch.',
+              'Create a blank form with the test name.',
+              'Wait for the builder/editor to open.',
+              'Confirm the form title is editable in the top bar.'
+            ],
+            expected: 'A new draft form opens in the builder with Build, Connect, Logic, Workflow, Share, Insights/Submissions, and A/B Test tabs available as appropriate.'
+          },
+          {
+            id: 'add-basic-fields',
+            title: 'Add and edit basic fields',
+            why: 'Basic fields, labels, and required validation must work before more advanced form features are useful.',
+            link: `${BASE}/forms`,
+            data: 'Fields: Short Text “Full name” required; Email “Email address” required; Multiple Choice “Plan interest” with “Free”, “Pro”, “Enterprise”.',
+            steps: [
+              'In the form editor, add a Short Text field, an Email field, and a Multiple Choice field.',
+              'Rename the labels using the settings panel.',
+              'Mark the Short Text and Email fields as required.',
+              'Add or rename the Multiple Choice options to Free, Pro, and Enterprise.',
+              'Wait for the Saved indicator before leaving the page.'
+            ],
+            expected: 'All fields appear in the builder preview with the edited labels, choices, and required indicators.'
+          },
+          {
+            id: 'preview-desktop-mobile',
+            title: 'Check desktop and mobile preview',
+            why: 'The editor has both canvas preview modes and a full preview modal; layout regressions often appear only on one viewport.',
+            link: `${BASE}/forms`,
+            data: 'Use the form created in the previous smoke test.',
+            steps: [
+              'Open the form editor Build tab.',
+              'Use the desktop/mobile preview toggle on the canvas.',
+              'Open the full preview modal.',
+              'Try moving through the questions with the mouse and keyboard Enter key.',
+              'Close the preview modal.'
+            ],
+            expected: 'Desktop and mobile previews both render the same fields, navigation works, and no broken empty state appears.'
+          },
+          {
+            id: 'publish-public-form',
+            title: 'Publish and open the public form',
+            why: 'Publishing moves a form from draft-only owner editing to a respondent-facing URL.',
+            link: `${BASE}/forms`,
+            data: 'Use the smoke form. Public URL should be copied from the Share tab after publishing.',
+            steps: [
+              'Click Publish in the form editor.',
+              'After publishing, open the Share tab.',
+              'Copy the public form link or use Open in new tab.',
+              'Open the public form in a signed-out/private browser window.'
+            ],
+            expected: 'The public form opens without requiring dashboard authentication and displays the first question.'
+          },
+          {
+            id: 'submit-and-verify-response',
+            title: 'Submit the public form and verify the response',
+            why: 'This verifies public validation, response persistence, dashboard response counts, and response display.',
+            link: `${BASE}/responses`,
+            data: 'Name: “QA Tester”; Email: qa+{date}@example.com; Plan interest: Pro.',
+            cleanup: 'Delete the test response from the Responses page or keep it attached to the test form until the form is trashed.',
+            steps: [
+              'Complete the published public form with the test data.',
+              'Submit the form and wait for the thank-you or completion screen.',
+              'Return to the dashboard and open Responses.',
+              'Filter or search for the form name or the test email.',
+              'Open the response details.'
+            ],
+            expected: 'The submission succeeds once, appears in the dashboard response list, and the saved answers match the test data.'
+          },
+          {
+            id: 'trash-restore-cleanup',
+            title: 'Trash and restore cleanup form',
+            why: 'Soft delete and restore protect users from accidental form deletion and keep daily QA data under control.',
+            link: `${BASE}/forms/trash`,
+            data: 'Use the QA smoke form after response verification.',
+            cleanup: 'After confirming restore works, trash the form again if the team wants beta kept clean. Do not permanently delete unless the team approves.',
+            steps: [
+              'From Forms, move the QA smoke form to Trash.',
+              'Open Forms → Trash.',
+              'Confirm the form appears with a remaining-days message.',
+              'Restore the form.',
+              'Confirm it returns to the Forms list.'
+            ],
+            expected: 'The form can be moved to Trash and restored without losing its title or responses.'
+          }
+        ]
+      },
+      {
+        id: 'builder-advanced',
+        title: 'Form builder depth checks',
+        subtitle: 'Exercise templates, AI, drag/drop editing, validation, design, logic, piping, and calculations.',
+        tests: [
+          {
+            id: 'template-form-create',
+            title: 'Create a form from a template',
+            why: 'Templates are a major creation path and include prebuilt fields/settings that must materialize correctly.',
+            link: `${BASE}/forms/templates`,
+            data: 'Use any non-premium template for Free QA accounts; use a premium template only with a paid test account.',
+            cleanup: 'Trash the template-created form after testing.',
+            steps: [
+              'Open Forms → Templates.',
+              'Search or filter the templates.',
+              'Preview one template.',
+              'Click Use template.',
+              'Confirm the new draft opens with multiple fields already populated.'
+            ],
+            expected: 'The template creates a draft form with the expected title, fields, and design without showing empty or corrupted blocks.'
+          },
+          {
+            id: 'ai-form-generate',
+            title: 'Generate a form with AI',
+            why: 'AI generation is a visible creation path and must either generate usable fields or clearly explain quota/setup issues.',
+            link: `${BASE}/forms/ai-generate`,
+            data: 'Prompt: “Create a short customer feedback form for a SaaS onboarding experience.”',
+            setup: 'Setup required: deployment needs AI provider keys and remaining AI quota. If AI is disabled or quota is exhausted, Skip with a note.',
+            cleanup: 'Trash the AI-created form after testing.',
+            steps: [
+              'Open Forms → AI Generate.',
+              'Enter the test prompt or choose a sample prompt.',
+              'Click Generate.',
+              'Review the generated outline.',
+              'Create the form from the generated result.'
+            ],
+            expected: 'AI either creates a usable draft form with relevant fields, or shows a clear non-crashing setup/quota error.'
+          },
+          {
+            id: 'reorder-duplicate-delete-fields',
+            title: 'Reorder, duplicate, and delete a field',
+            why: 'The builder uses drag-and-drop and field actions; these are common editing actions that can corrupt field order if broken.',
+            link: `${BASE}/forms`,
+            data: 'Use a draft form with at least three fields.',
+            cleanup: 'Restore the intended final field list before publishing if this is a reusable QA form.',
+            steps: [
+              'Open a draft form in the editor.',
+              'Drag the last question above the first question.',
+              'Duplicate one question.',
+              'Rename the duplicate so it is easy to identify.',
+              'Delete the duplicate.',
+              'Refresh after the Saved indicator appears.'
+            ],
+            expected: 'The order persists after refresh, the duplicate appears only once, and the deleted duplicate stays removed.'
+          },
+          {
+            id: 'required-validation-errors',
+            title: 'Required-field errors block submission',
+            why: 'Public validation must prevent incomplete responses and show clear guidance to respondents.',
+            link: `${BASE}/forms`,
+            data: 'Use a published form with at least one required text or email field.',
+            steps: [
+              'Open the published form in a private window.',
+              'Leave the required field blank.',
+              'Try to continue or submit.',
+              'Enter an invalid email address in an Email field and try again.',
+              'Correct the value and submit.'
+            ],
+            expected: 'Blank required fields and invalid email values are blocked with visible errors; valid data can be submitted.'
+          },
+          {
+            id: 'design-branding-theme',
+            title: 'Change form design and branding',
+            why: 'Design settings and WittyForm branding controls affect the public respondent experience.',
+            link: `${BASE}/forms`,
+            data: 'Use safe test colors such as amber background, dark text, and a clearly labeled QA logo if available.',
+            setup: 'Removing WittyForm branding and brand profiles are plan-gated; mark Skip if the account is not eligible.',
+            cleanup: 'Reset test colors/logo before reusing the form with real respondents.',
+            steps: [
+              'Open the form editor Build tab.',
+              'Open the Design panel.',
+              'Change at least one color and, if available, the font or logo.',
+              'Preview the form on desktop and mobile.',
+              'Publish edits and reopen the public URL.'
+            ],
+            expected: 'The preview and public form use the updated design, text remains readable, and branding controls behave according to the account plan.'
+          },
+          {
+            id: 'conditional-skip-logic',
+            title: 'Test conditional show/hide and skip logic',
+            why: 'Conditional logic changes what respondents see and is critical for branching forms.',
+            link: `${BASE}/forms`,
+            data: 'Example: “Do you want dessert?” choice field with “Yes/No”; show “What dessert?” only when Yes.',
+            setup: 'Conditional logic is plan-gated by subscription. Use a paid/eligible test account or mark Setup required.',
+            cleanup: 'Remove the logic rule if it was added to a shared QA form.',
+            steps: [
+              'Create or open a form with a choice field and a follow-up text field.',
+              'Open the Logic tab.',
+              'Add a rule to show the follow-up only when the choice is Yes.',
+              'Publish the form.',
+              'Submit once choosing Yes and once choosing No.'
+            ],
+            expected: 'The follow-up field appears only for the matching answer, and submissions save only the relevant visible answers.'
+          },
+          {
+            id: 'answer-piping-calculation',
+            title: 'Check answer piping and calculations',
+            why: 'Piped answers and calculation fields power personalized forms, diagnostic reports, and scoring-style journeys.',
+            link: `${BASE}/forms`,
+            data: 'Fields: name text field, two number fields, calculation field that adds the two numbers, statement/end screen referencing the name.',
+            setup: 'Calculation fields are Pro/paid plan features. Mark Setup required if locked.',
+            cleanup: 'Trash the diagnostic/calculation test form when finished.',
+            steps: [
+              'Create a form with a name field and two number fields.',
+              'Add a calculation field that totals the numbers.',
+              'Add a statement or end screen that references the name answer.',
+              'Publish and submit the form with sample values.',
+              'View the saved response and completion screen.'
+            ],
+            expected: 'The calculation result matches the entered numbers, and piped text uses the respondent answer instead of showing a raw placeholder.'
+          }
+        ]
+      },
+      {
+        id: 'share-responses-analytics',
+        title: 'Publishing, sharing, responses, and analytics',
+        subtitle: 'Verify owner-facing distribution tools and reporting after a form is live.',
+        tests: [
+          {
+            id: 'share-link-custom-slug-qr',
+            title: 'Copy share link, custom slug, and QR code',
+            why: 'Users depend on stable share links and QR codes to distribute published forms.',
+            link: `${BASE}/forms`,
+            data: 'Custom slug: qa-daily-{date} if available and unused.',
+            cleanup: 'Remove or reset the custom slug if it should not remain reserved.',
+            steps: [
+              'Open a published form and go to the Share tab.',
+              'Copy the public link and open it in a private window.',
+              'Open Customize and set a safe test slug if available.',
+              'Open the QR code modal.',
+              'Download the QR as PNG or SVG.'
+            ],
+            expected: 'Copied/default/custom links open the correct public form, slug validation blocks invalid slugs, and QR download works.'
+          },
+          {
+            id: 'embed-email-share-code',
+            title: 'Copy embed and email share content',
+            why: 'Embed code and email copy are common sharing modes and should not generate broken snippets.',
+            link: `${BASE}/forms`,
+            data: 'Use the published QA form link.',
+            setup: 'Do not send email to real recipients. Use copy-only mode or a tester-owned address.',
+            steps: [
+              'Open the published form Share tab.',
+              'Switch to Embed.',
+              'Choose inline, popup, slider, and full-page styles one at a time.',
+              'Copy the generated code for one style.',
+              'Switch to Email and copy the plain-text or HTML content without sending to customers.'
+            ],
+            expected: 'Embed snippets include the correct public form URL with embed mode, and email share content copies without an error.'
+          },
+          {
+            id: 'responses-search-export-csv',
+            title: 'Search responses and export CSV',
+            why: 'Response management must let owners find and export respondent data safely.',
+            link: `${BASE}/responses`,
+            data: 'Use the response submitted during the daily smoke test.',
+            cleanup: 'Delete exported local files if they contain test PII.',
+            steps: [
+              'Open Responses from the dashboard.',
+              'Search for the test email or form title.',
+              'Filter to the specific form if needed.',
+              'Open the response details.',
+              'Click Export CSV.'
+            ],
+            expected: 'Search/filter narrows results correctly, details show the answers, and the CSV downloads with safe columns and readable values.'
+          },
+          {
+            id: 'form-insights-analytics',
+            title: 'Review form analytics',
+            why: 'Views, starts, completions, devices, and conversion charts help owners spot drop-off problems.',
+            link: `${BASE}/analytics`,
+            data: 'Use a published form that has at least one view and one response.',
+            steps: [
+              'Open the form detail page or editor Insights tab.',
+              'Switch between Responses/Submissions and Analytics views.',
+              'Open global Analytics from the sidebar.',
+              'Check overview, device, drop-off, time, and geographic tabs where data exists.'
+            ],
+            expected: 'Analytics pages load charts or clear empty states; response and view counts match recent QA activity within expected refresh delay.'
+          },
+          {
+            id: 'form-access-settings',
+            title: 'Check form access settings',
+            why: 'Close dates, response limits, password protection, CAPTCHA, and one-response controls change who can submit.',
+            link: `${BASE}/forms`,
+            data: 'Use a disposable QA form; password example: “qa-only-{date}”.',
+            setup: 'CAPTCHA requires site/secret keys from reCAPTCHA or hCaptcha. Mark Setup required if keys are unavailable.',
+            cleanup: 'Turn off password, test response limit, and CAPTCHA after the test unless the form is disposable.',
+            steps: [
+              'Open Form Settings from the editor.',
+              'Review the Access and Link tabs.',
+              'Enable password protection on a disposable form and publish edits.',
+              'Open the public form in a private window and enter the password.',
+              'If CAPTCHA keys exist, enable CAPTCHA and confirm the widget appears before final submit.'
+            ],
+            expected: 'Password-protected forms show an unlock screen, correct passwords unlock the form, and setup-dependent CAPTCHA behaves without crashing.'
+          }
+        ]
+      },
+      {
+        id: 'quizzes',
+        title: 'Quiz journeys',
+        subtitle: 'Create, score, publish, complete, and report on quizzes.',
+        tests: [
+          {
+            id: 'create-quiz-manual',
+            title: 'Create a quiz manually',
+            why: 'Quizzes have a separate builder and public flow from forms, so they need their own smoke test.',
+            link: `${BASE}/quizzes/new`,
+            data: 'Quiz name: “QA Quiz Smoke — {date}”. Add welcome screen and at least two questions.',
+            cleanup: 'Trash the QA quiz after testing if no failure needs investigation.',
+            steps: [
+              'Open Quizzes → New Quiz.',
+              'Start from scratch.',
+              'Add a Welcome Screen.',
+              'Add a Multiple Choice question and a True/False question.',
+              'Wait for the Saved indicator.'
+            ],
+            expected: 'The quiz editor opens, blocks appear in the sidebar/canvas, and autosave completes.'
+          },
+          {
+            id: 'quiz-scoring-results',
+            title: 'Set correct answers and result screen',
+            why: 'Server-side quiz scoring depends on correct answer and result settings being saved accurately.',
+            link: `${BASE}/quizzes`,
+            data: 'Mark one answer correct for each scored question; passing score 50 or 70.',
+            steps: [
+              'Open the QA quiz editor.',
+              'Select each question and mark the correct answer.',
+              'Set points if available.',
+              'Add or edit a Result Screen that shows score and correct answers.',
+              'Open the quiz preview.'
+            ],
+            expected: 'The preview shows the question flow and result screen settings without exposing editor-only controls.'
+          },
+          {
+            id: 'publish-submit-quiz',
+            title: 'Publish and submit the quiz',
+            why: 'Public quiz completion verifies published-only access, validation, server scoring, and result display.',
+            link: `${BASE}/quizzes`,
+            data: 'Tester name/email: QA Tester / qa-quiz+{date}@example.com if an email gate is enabled.',
+            cleanup: 'Delete or archive the QA quiz response if needed.',
+            steps: [
+              'Click Publish or Update in the quiz editor.',
+              'Open the Share tab and copy/open the public quiz link.',
+              'Complete the quiz once with mostly correct answers.',
+              'Submit the quiz.',
+              'Review the result screen.'
+            ],
+            expected: 'The quiz submits successfully, shows score/pass/fail information, and does not require dashboard auth.'
+          },
+          {
+            id: 'quiz-responses-analytics-export',
+            title: 'Review quiz responses and analytics',
+            why: 'Quiz owners need to search, sort, export, and analyze attempts.',
+            link: `${BASE}/quizzes`,
+            data: 'Use the quiz response created in the previous test.',
+            cleanup: 'Delete downloaded CSV files after review.',
+            steps: [
+              'Open the quiz detail or editor Insights tab.',
+              'Open Responses and search for the tester name/email.',
+              'Sort by score or date if controls are available.',
+              'Export responses to CSV.',
+              'Switch to Analytics and confirm score/pass/view charts load.'
+            ],
+            expected: 'The quiz response appears with respondent, score, percentage, pass/fail, time, and submitted date; CSV export downloads.'
+          },
+          {
+            id: 'quiz-leaderboard-certificate',
+            title: 'Check leaderboard and certificate options',
+            why: 'Leaderboards and certificates are highly visible quiz outcome features and are easy to break with scoring changes.',
+            link: `${BASE}/quizzes`,
+            data: 'Use a passing quiz attempt with a tester name/email.',
+            setup: 'Setup/plan required: enable leaderboard and certificate settings on an eligible quiz/account.',
+            cleanup: 'Disable leaderboard/certificate if the QA quiz is reused for other tests.',
+            steps: [
+              'Open quiz settings and enable Leaderboard and Certificates if the account allows it.',
+              'Publish/update the quiz.',
+              'Submit a passing attempt with a tester name.',
+              'Check the result screen for a certificate download button.',
+              'Open the leaderboard view in Insights.'
+            ],
+            expected: 'Passing users can generate/download a certificate when enabled, and leaderboard entries show safe public fields without exposing emails.'
+          }
+        ]
+      },
+      {
+        id: 'workspace-account',
+        title: 'Workspace, account, and plan controls',
+        subtitle: 'Check tenancy, roles, account settings, exports, API keys, and plan gates.',
+        tests: [
+          {
+            id: 'workspace-create-switch',
+            title: 'Create or switch workspace',
+            why: 'WittyForm scopes forms, CRM data, integrations, and settings by workspace.',
+            link: `${BASE}/dashboard`,
+            data: 'Workspace name: “QA Workspace {date}” if creating a disposable workspace.',
+            setup: 'Additional workspace creation may require an Enterprise account; if locked, only test switching existing workspaces.',
+            cleanup: 'If a disposable workspace was created, ask an owner before deleting/removing it.',
+            steps: [
+              'Open the workspace switcher in the sidebar/top area.',
+              'Switch to another workspace if one exists.',
+              'Confirm Forms and Responses refresh for that workspace.',
+              'If the account permits, create a new QA workspace.',
+              'Switch back to the original workspace.'
+            ],
+            expected: 'Workspace switching updates dashboard data without leaking forms/responses from another workspace.'
+          },
+          {
+            id: 'team-invite-roles',
+            title: 'Invite a team member and check roles',
+            why: 'Team access controls protect workspace data and editing permissions.',
+            link: `${BASE}/team`,
+            data: 'Use a tester-owned second email address only. Role: Viewer or Editor for the safest test.',
+            setup: 'Setup required: paid plan with team seats and access to a second verified Clerk email inbox.',
+            cleanup: 'Remove the invited member and revoke pending invites after the test.',
+            steps: [
+              'Open Team from the sidebar.',
+              'Invite the tester-owned second email as Viewer or Editor.',
+              'Confirm the invite appears in the pending list.',
+              'Open the invite link while signed in as the invited tester.',
+              'Accept the invite and verify the member appears in Team.'
+            ],
+            expected: 'Invites are role-scoped, expire correctly, and accepted members appear with the selected role; viewers should not see write controls.'
+          },
+          {
+            id: 'settings-notifications-export',
+            title: 'Review settings, notifications, and data export',
+            why: 'Owners need safe account/workspace settings and data portability controls.',
+            link: `${BASE}/settings/data-export`,
+            data: 'Use date filters that include only QA responses where possible.',
+            cleanup: 'Delete downloaded export files after review.',
+            steps: [
+              'Open Settings → General and confirm workspace name/timezone fields load.',
+              'Open Settings → Notifications and toggle a harmless preference, then restore it.',
+              'Open Settings → Data Export.',
+              'Filter to the QA form/date range if possible.',
+              'Export CSV, JSON, or Excel according to plan access.'
+            ],
+            expected: 'Settings save without errors, exports download, and dangerous delete-all responses remains behind a confirmation dialog.'
+          },
+          {
+            id: 'api-keys-plan-gate',
+            title: 'Check API key access and plan gate',
+            why: 'Developer API keys grant programmatic access and must be gated, one-time revealed, rotatable, and revocable.',
+            link: `${BASE}/api-key`,
+            data: 'Key label: “QA key {date}”. Scopes: choose the narrowest available read scope.',
+            setup: 'API access requires a Pro/Enterprise/eligible account. If on Free, verify the upgrade prompt instead.',
+            cleanup: 'Revoke any QA API key created during the test.',
+            steps: [
+              'Open API Key from the dashboard.',
+              'If gated, confirm an upgrade prompt appears and do not proceed.',
+              'If available, create a QA key with narrow scopes.',
+              'Copy the one-time revealed key into a local scratch note only.',
+              'Rotate or revoke the key and confirm the list updates.'
+            ],
+            expected: 'Free accounts are blocked; eligible accounts can create, copy once, rotate, and revoke API keys without exposing full keys later.'
+          },
+          {
+            id: 'upgrade-plan-limits',
+            title: 'Confirm upgrade page and plan limits',
+            why: 'Plan gates control premium fields, team seats, API keys, CRM, webhooks, branding, and offline mode.',
+            link: `${BASE}/upgrade`,
+            data: 'No purchase data. Do not complete real checkout.',
+            setup: 'Do not make real purchases or incur charges. Only inspect the page and blocked feature prompts.',
+            steps: [
+              'Open Upgrade from the sidebar.',
+              'Confirm the current plan is shown.',
+              'Open a known gated feature such as premium field, webhooks, CRM, or offline mode on a Free account if available.',
+              'Confirm the UI explains the required plan.',
+              'Do not click through any real payment checkout.'
+            ],
+            expected: 'Plan information and upgrade prompts are clear; blocked features do not partially save inaccessible settings.'
+          }
+        ]
+      },
+      {
+        id: 'integrations-automation',
+        title: 'Integrations, webhooks, workflow, and imports',
+        subtitle: 'External services are marked setup-required and should use safe test destinations only.',
+        tests: [
+          {
+            id: 'webhook-create-test',
+            title: 'Create and test a webhook',
+            why: 'Webhooks are a critical automation surface and include URL validation, event selection, signing secrets, logs, and test delivery.',
+            link: `${BASE}/webhooks`,
+            data: 'Use a disposable RequestBin/webhook.site URL and a generated secret. Events: form.submitted and response.received.',
+            setup: 'Setup required: Pro/eligible account and a safe webhook collector. Never use a real customer endpoint for QA.',
+            cleanup: 'Delete the QA webhook after testing.',
+            steps: [
+              'Open Webhooks and click New Webhook.',
+              'Enter a clear QA name and the disposable URL.',
+              'Select form.submitted and response.received events.',
+              'Generate or enter a secret.',
+              'Save, then use the Test action and inspect logs/collector output.'
+            ],
+            expected: 'Webhook creation succeeds, test delivery receives an HTTP response, logs show the delivery status, and delete removes the QA webhook.'
+          },
+          {
+            id: 'connect-integrations-safe',
+            title: 'Check Slack, Google Sheets, and Google Drive connection UI',
+            why: 'Form/quiz Connect tabs save per-resource integration settings and test delivery to external services.',
+            link: `${BASE}/integrations`,
+            data: 'Use a dedicated QA Slack channel and QA Google Sheet/folder only.',
+            setup: 'Setup required: OAuth credentials and tester-owned Slack/Google accounts. Do not connect customer workspaces.',
+            cleanup: 'Disable test integration settings and disconnect/revoke QA OAuth credentials if created.',
+            steps: [
+              'Open a form editor and go to Connect → Integrations.',
+              'Review Slack, Google Sheets, and Google Drive cards.',
+              'If QA credentials are available, connect one provider.',
+              'Select a QA channel/sheet/folder.',
+              'Use the Test button where provided, then save.'
+            ],
+            expected: 'Unconnected providers show connect prompts; connected providers list selectable resources and test/save without sending data to real customers.'
+          },
+          {
+            id: 'email-notifications-double-opt-in',
+            title: 'Check email notifications and double opt-in',
+            why: 'Owner notifications, respondent confirmations, Reply-To, PDFs, and double opt-in affect customer communication.',
+            link: `${BASE}/email`,
+            data: 'Use only tester-owned email addresses such as qa+{date}@example.com or an internal inbox.',
+            setup: 'Setup required: email provider/Resend/SMTP must be configured. Do not email real customers.',
+            cleanup: 'Turn off test notification settings and delete test queued emails if the team requests cleanup.',
+            steps: [
+              'Open a form’s Settings → Email tab.',
+              'Enable owner notification to a tester-owned inbox.',
+              'If testing respondent email, select an email field and use a tester-owned respondent address.',
+              'Optionally enable double opt-in on a disposable form.',
+              'Submit the public form and check all inbox tabs/spam.'
+            ],
+            expected: 'Emails arrive only at tester addresses, Reply-To behavior matches form settings, and double opt-in holds the response until confirmation when enabled.'
+          },
+          {
+            id: 'workflow-automation',
+            title: 'Create a simple workflow automation',
+            why: 'Workflows run post-submission actions and redirects; they must never break the core submission path.',
+            link: `${BASE}/forms`,
+            data: 'Use a disposable form and a harmless workflow action such as internal notification or safe redirect.',
+            setup: 'Some workflow actions require integrations or paid-plan limits. Mark Setup required if the desired action is locked.',
+            cleanup: 'Disable or remove the QA workflow after testing.',
+            steps: [
+              'Open a form editor and go to the Workflow tab.',
+              'Add a simple trigger/action path.',
+              'Save the workflow.',
+              'Publish or update the form.',
+              'Submit the public form and check the expected workflow effect.'
+            ],
+            expected: 'The workflow saves and runs the safe action after submission without causing duplicate responses or a public error.'
+          },
+          {
+            id: 'imports-google-typeform',
+            title: 'Import from Google Forms or Typeform',
+            why: 'Import tools are separate creation paths and should either import supported forms or clearly show setup errors.',
+            link: `${BASE}/imports`,
+            data: 'Use a small QA Google Form or Typeform containing only test questions.',
+            setup: 'Setup required: Google Forms import needs a shareable form; Typeform import is Pro/token/OAuth dependent. Other import sources are Coming Soon and should not be tested as available.',
+            cleanup: 'Trash imported forms after verification.',
+            steps: [
+              'Open Imports or Forms → Import.',
+              'Choose Google Forms or Typeform only.',
+              'Provide the QA source form URL/token as required.',
+              'Run the import.',
+              'Open the imported draft and compare field labels/options.'
+            ],
+            expected: 'Supported sources import into an editable draft, while locked/missing credentials produce clear errors. Coming Soon sources stay disabled.'
+          }
+        ]
+      },
+      {
+        id: 'business-advanced',
+        title: 'CRM, ecommerce, white-label, translations, and offline',
+        subtitle: 'Plan-gated business features that should be tested with prepared staging setup only.',
+        tests: [
+          {
+            id: 'crm-contact-deal-pipeline',
+            title: 'Create CRM contact, deal, and pipeline item',
+            why: 'CRM data is workspace-scoped and powers contact management, deals, pipelines, custom fields, and lead scoring.',
+            link: `${BASE}/crm`,
+            data: 'Contact: QA Contact {date}; Email: crm+{date}@example.com; Deal: QA Deal {date}.',
+            setup: 'Setup required: CRM is a paid-plan feature.',
+            cleanup: 'Delete the QA contact, deal, custom field, and pipeline if created.',
+            steps: [
+              'Open CRM.',
+              'Create a QA contact or import a tiny QA CSV if available.',
+              'Search/filter for the contact.',
+              'Create a deal connected to the contact.',
+              'Move the deal in the kanban/pipeline and review analytics if present.'
+            ],
+            expected: 'CRM records save in the selected workspace, search/filter/export controls work, and deal status changes persist.'
+          },
+          {
+            id: 'products-orders-stripe',
+            title: 'Check products, payment field, and orders safely',
+            why: 'Order forms touch product catalog, Stripe payments, public submission, and order dashboards.',
+            link: `${BASE}/products`,
+            data: 'Product: QA Test Product {date}, price $1.00 USD, test inventory 5.',
+            setup: 'Setup required: payment integration requires Stripe test-mode keys. Do not use live cards or real purchases.',
+            cleanup: 'Delete the QA product/order or mark test orders clearly after review.',
+            steps: [
+              'Open Products and create a QA product with a small test price.',
+              'Create or open a form with a Product or Payment field.',
+              'If Stripe test mode is configured, submit with a Stripe test card only.',
+              'Open Orders and filter/find the QA order.',
+              'Update the order status if safe.'
+            ],
+            expected: 'Products save with price/inventory, public payment flow uses test mode only, and resulting orders appear in Orders with accurate status/total.'
+          },
+          {
+            id: 'white-label-domain-brand',
+            title: 'Review brand profiles, white-label, and custom domain setup',
+            why: 'White-label settings affect public forms, quizzes, email identity, domains, logos, colors, and WittyForm attribution.',
+            link: `${BASE}/white-label`,
+            data: 'Use a QA subdomain such as forms-qa.example.com only if DNS access is available.',
+            setup: 'Setup required: Enterprise/eligible plan plus DNS/Cloudflare/Dokploy access for domain verification. Do not change real customer domains.',
+            cleanup: 'Remove QA domains/brands only after confirming they are not shared by other tests.',
+            steps: [
+              'Open White Label and review Domain, Branding, Themes, and Email tabs.',
+              'If eligible, create or edit a QA brand profile from Brands.',
+              'If DNS access is available, add a QA subdomain and review CNAME/TXT instructions.',
+              'Verify only the QA domain.',
+              'Open a published QA form/quiz and confirm branding/domain behavior.'
+            ],
+            expected: 'Locked accounts show upgrade messaging; eligible accounts save branding, show DNS records, verify QA domains, and use brand-safe public URLs.'
+          },
+          {
+            id: 'multi-language-translation',
+            title: 'Add a form translation and switch language publicly',
+            why: 'Multi-language forms require builder settings, AI translation, public language links, and runtime field translations to stay in sync.',
+            link: `${BASE}/forms`,
+            data: 'Translate a short QA form from English to Spanish or French.',
+            setup: 'Setup required: Pro/Enterprise plan for multi-language forms and AI translation provider if using auto-translate.',
+            cleanup: 'Remove extra test translation or trash the form after testing.',
+            steps: [
+              'Open a short QA form in the editor.',
+              'Open Form Settings → Translations.',
+              'Confirm or set the source language.',
+              'Add a target language translation if the account/setup allows it.',
+              'Publish and open the language-specific Share link.'
+            ],
+            expected: 'The public form language switch/link shows translated title, field labels, options, and validation copy without mixed-language corruption.'
+          },
+          {
+            id: 'offline-cache-sync',
+            title: 'Test offline form cache and sync',
+            why: 'Offline mode uses IndexedDB and sync queues; it must not lose submissions when a respondent loses connection.',
+            link: `${BASE}/offline`,
+            data: 'Use an Enterprise QA account and a disposable form with offline enabled.',
+            setup: 'Setup required: Enterprise/Howdy plan and a form configured for offline mode. Avoid file uploads/maps/password fields unless specifically testing those limits.',
+            cleanup: 'Clear offline QA data from the Offline page after sync completes.',
+            steps: [
+              'Open Offline from the dashboard and confirm cached form stats load.',
+              'Open an offline-enabled public form while online so it can cache.',
+              'Turn the browser/network offline.',
+              'Submit a small test response and confirm it is queued locally.',
+              'Go back online and trigger/observe sync.'
+            ],
+            expected: 'Offline status is visible, the response queues locally without data loss, and sync sends it when back online.'
+          }
+        ]
+      },
+      {
+        id: 'security-negative',
+        title: 'Negative and access-control smoke tests',
+        subtitle: 'Quick checks for unauthenticated access, draft/public gates, and safe failure states.',
+        tests: [
+          {
+            id: 'protected-routes-signed-out',
+            title: 'Protected dashboard routes require sign-in',
+            why: 'Dashboard data must never be visible to signed-out visitors.',
+            link: `${BASE}/dashboard`,
+            data: 'Use a private/incognito window with no active WittyForm session.',
+            steps: [
+              'Open a private/incognito browser window.',
+              'Visit /dashboard, /forms, /responses, and /settings/general on beta.',
+              'Observe the page after each navigation.',
+              'Do not sign in during this test.'
+            ],
+            expected: 'Each protected route redirects to sign-in or shows an auth-required state; no dashboard data appears.'
+          },
+          {
+            id: 'draft-unpublished-public-blocked',
+            title: 'Draft or trashed public forms are blocked',
+            why: 'Only published, non-trashed forms/quizzes should be publicly accessible.',
+            link: `${BASE}/forms`,
+            data: 'Use a disposable draft form or a form moved to Trash.',
+            cleanup: 'Restore any form that should not remain trashed.',
+            steps: [
+              'Create a draft form but do not publish it, or move a disposable form to Trash.',
+              'Copy its ID/short ID if visible from the URL or share tools.',
+              'Open the guessed public /form/... URL in a private window.',
+              'Repeat with a draft quiz if available.'
+            ],
+            expected: 'Draft, archived, or trashed forms/quizzes show a not-found/unavailable state and do not render respondent fields.'
+          },
+          {
+            id: 'public-error-states-clear',
+            title: 'Public error states are understandable',
+            why: 'Respondents should see clear messages for missing forms, closed forms, wrong passwords, and invalid submissions.',
+            link: `${BASE}/forms`,
+            data: 'Use a fake public form URL typed manually, plus a closed/password-protected QA form if available.',
+            steps: [
+              'Open a fake public form URL.',
+              'Open a password-protected QA form and enter a wrong password.',
+              'Open a closed/response-limited QA form if one exists.',
+              'Try submitting invalid required data on a public form.'
+            ],
+            expected: 'Each failure state is readable and recoverable where appropriate; there are no raw stack traces or dashboard-only errors.'
+          },
+          {
+            id: 'no-production-side-effects',
+            title: 'Confirm no production side effects during QA',
+            why: 'Daily QA should not create real purchases, email real customers, mutate production data, or send live integration traffic.',
+            link: `${BASE}/dashboard`,
+            data: 'Tester initials and today’s date should appear in every created test object name.',
+            setup: 'If a test would require live customer credentials or a real charge, Skip it and write why.',
+            cleanup: 'At the end of QA, remove disposable forms/quizzes/webhooks/products/CRM records created during the run.',
+            steps: [
+              'Review the notes for every skipped setup-required test.',
+              'Confirm all created objects include QA/test naming.',
+              'Confirm no real customer email address was used.',
+              'Confirm no live payment card or live integration endpoint was used.',
+              'Clean up disposable data or record why it was intentionally kept.'
+            ],
+            expected: 'The QA run remains isolated to beta/test data and any retained test artifacts are named clearly.'
+          }
+        ]
+      }
+    ];
+
+    const STATUS = {
+      pass: { label: 'Passed', icon: '✓' },
+      fail: { label: 'Failed', icon: '✕' },
+      skip: { label: 'Skipped', icon: '○' },
+      untested: { label: 'Untested', icon: '□' }
+    };
+
+    const STORAGE_PREFIX = 'wittyform-qa:v1:';
+    const COLLAPSE_KEY = STORAGE_PREFIX + 'collapsed';
+    const DATE_FMT = new Intl.DateTimeFormat('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    const sectionsEl = document.getElementById('sections');
+    const qaDateEl = document.getElementById('qaDate');
+    const friendlyDateEl = document.getElementById('friendlyDate');
+    const toastEl = document.getElementById('toast');
+    let currentDate = todayKey();
+    let state = { statuses: {}, notes: {}, updatedAt: null };
+    let collapsed = loadCollapsed();
+
+    function todayKey() {
+      const d = new Date();
+      const offset = d.getTimezoneOffset();
+      const local = new Date(d.getTime() - offset * 60000);
+      return local.toISOString().slice(0, 10);
+    }
+
+    function stateKey(dateKey = currentDate) {
+      return STORAGE_PREFIX + 'results:' + dateKey;
+    }
+
+    function loadState() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(stateKey()) || '{}');
+        state = {
+          statuses: parsed.statuses && typeof parsed.statuses === 'object' ? parsed.statuses : {},
+          notes: parsed.notes && typeof parsed.notes === 'object' ? parsed.notes : {},
+          updatedAt: parsed.updatedAt || null
+        };
+      } catch {
+        state = { statuses: {}, notes: {}, updatedAt: null };
+      }
+    }
+
+    function saveState() {
+      state.updatedAt = new Date().toISOString();
+      localStorage.setItem(stateKey(), JSON.stringify(state));
+    }
+
+    function loadCollapsed() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '{}');
+        return parsed && typeof parsed === 'object' ? parsed : {};
+      } catch {
+        return {};
+      }
+    }
+
+    function saveCollapsed() {
+      localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsed));
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function replaceDateToken(value) {
+      return String(value ?? '').replaceAll('{date}', currentDate);
+    }
+
+    function allTests() {
+      return CHECKLIST_SECTIONS.flatMap(section => section.tests.map(test => ({ ...test, sectionId: section.id, sectionTitle: section.title })));
+    }
+
+    function testStatus(testId) {
+      return state.statuses[testId] || 'untested';
+    }
+
+    function statusBadge(status) {
+      const meta = STATUS[status] || STATUS.untested;
+      return `<span class="status-badge ${status === 'untested' ? '' : status}">${meta.icon} ${meta.label}</span>`;
+    }
+
+    function safeLink(link) {
+      if (!link) return '<span>No stable direct link for this dynamic page.</span>';
+      return `<a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link)}</a>`;
+    }
+
+    function render() {
+      qaDateEl.value = currentDate;
+      const dateObj = new Date(currentDate + 'T12:00:00');
+      friendlyDateEl.textContent = DATE_FMT.format(dateObj);
+      document.getElementById('totalTestsLabel').textContent = `${allTests().length} tests`;
+
+      sectionsEl.innerHTML = CHECKLIST_SECTIONS.map((section, index) => {
+        const testsHtml = section.tests.map(test => renderTest(test)).join('');
+        const isCollapsed = collapsed[section.id] === true;
+        return `
+          <section class="card section" data-section-id="${escapeHtml(section.id)}" data-collapsed="${isCollapsed ? 'true' : 'false'}">
+            <button type="button" class="section-header" aria-expanded="${isCollapsed ? 'false' : 'true'}" aria-controls="body-${escapeHtml(section.id)}" data-section-toggle="${escapeHtml(section.id)}">
+              <span class="section-num">${index + 1}</span>
+              <span class="section-title"><h2>${escapeHtml(section.title)}</h2><p>${escapeHtml(section.subtitle)}</p></span>
+              <span class="section-counter" id="counter-${escapeHtml(section.id)}">0/${section.tests.length}</span>
+              <span class="chevron" aria-hidden="true">⌄</span>
+            </button>
+            <div class="section-body" id="body-${escapeHtml(section.id)}">
+              ${testsHtml}
+            </div>
+          </section>`;
+      }).join('');
+
+      bindRenderedEvents();
+      updateProgress();
+    }
+
+    function renderTest(test) {
+      const status = testStatus(test.id);
+      const note = state.notes[test.id] || '';
+      const setup = test.setup || test.warning || '';
+      const cleanup = test.cleanup || '';
+      return `
+        <article class="test" data-test-id="${escapeHtml(test.id)}" data-status="${escapeHtml(status)}">
+          <div class="test-header">
+            <div>
+              <h3>${escapeHtml(test.title)}</h3>
+              <p class="why">${escapeHtml(test.why)}</p>
+            </div>
+            ${statusBadge(status)}
+          </div>
+
+          <div class="meta-grid">
+            <div class="meta-box link"><strong>Relevant page</strong>${safeLink(test.link)}</div>
+            <div class="meta-box"><strong>Required test data</strong>${escapeHtml(replaceDateToken(test.data || 'No special test data.'))}</div>
+            ${setup ? `<div class="meta-box warning"><strong>Warning or setup note</strong>${escapeHtml(replaceDateToken(setup))}</div>` : ''}
+            ${cleanup ? `<div class="meta-box"><strong>Cleanup</strong>${escapeHtml(replaceDateToken(cleanup))}</div>` : ''}
+          </div>
+
+          <details class="test-details" open>
+            <summary>Steps and expected result</summary>
+            <ol class="steps">
+              ${(test.steps || []).map(step => `<li>${escapeHtml(replaceDateToken(step))}</li>`).join('')}
+            </ol>
+            <div class="expected"><strong>Expected result:</strong> ${escapeHtml(replaceDateToken(test.expected || 'The feature behaves as described.'))}</div>
+          </details>
+
+          <div class="verdict" role="group" aria-label="Set result for ${escapeHtml(test.title)}">
+            ${['pass','fail','skip'].map(type => `<button type="button" class="choice ${type}${status === type ? ' active' : ''}" aria-pressed="${status === type ? 'true' : 'false'}" data-status-choice="${type}" data-test-id="${escapeHtml(test.id)}">${STATUS[type].icon} ${STATUS[type].label}</button>`).join('')}
+            <button type="button" class="btn small" data-clear-test="${escapeHtml(test.id)}">Clear</button>
+          </div>
+
+          <div class="notes">
+            <label for="notes-${escapeHtml(test.id)}">Notes for failure, blocker, or skipped setup</label>
+            <textarea id="notes-${escapeHtml(test.id)}" data-notes-for="${escapeHtml(test.id)}" placeholder="What happened? Include browser, account type, link, screenshot reference, or setup blocker.">${escapeHtml(note)}</textarea>
+          </div>
+        </article>`;
+    }
+
+    function bindRenderedEvents() {
+      document.querySelectorAll('[data-section-toggle]').forEach(button => {
+        button.addEventListener('click', () => {
+          const id = button.getAttribute('data-section-toggle');
+          const section = document.querySelector(`[data-section-id="${CSS.escape(id)}"]`);
+          const next = section.getAttribute('data-collapsed') !== 'true';
+          section.setAttribute('data-collapsed', next ? 'true' : 'false');
+          button.setAttribute('aria-expanded', next ? 'false' : 'true');
+          collapsed[id] = next;
+          saveCollapsed();
+        });
+      });
+
+      document.querySelectorAll('[data-status-choice]').forEach(button => {
+        button.addEventListener('click', () => {
+          const id = button.getAttribute('data-test-id');
+          const nextStatus = button.getAttribute('data-status-choice');
+          state.statuses[id] = nextStatus;
+          saveState();
+          refreshTestCard(id);
+          updateProgress();
+        });
+      });
+
+      document.querySelectorAll('[data-clear-test]').forEach(button => {
+        button.addEventListener('click', () => {
+          const id = button.getAttribute('data-clear-test');
+          delete state.statuses[id];
+          saveState();
+          refreshTestCard(id);
+          updateProgress();
+        });
+      });
+
+      document.querySelectorAll('[data-notes-for]').forEach(textarea => {
+        textarea.addEventListener('input', () => {
+          const id = textarea.getAttribute('data-notes-for');
+          state.notes[id] = textarea.value;
+          saveState();
+          updateSummary();
+        });
+      });
+    }
+
+    function refreshTestCard(id) {
+      const test = allTests().find(t => t.id === id);
+      const old = document.querySelector(`[data-test-id="${CSS.escape(id)}"]`);
+      if (!test || !old) return;
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = renderTest(test).trim();
+      old.replaceWith(wrapper.firstElementChild);
+      bindRenderedEvents();
+    }
+
+    function updateProgress() {
+      const tests = allTests();
+      const counts = { pass: 0, fail: 0, skip: 0, unfinished: 0 };
+      for (const test of tests) {
+        const status = testStatus(test.id);
+        if (status === 'pass') counts.pass += 1;
+        else if (status === 'fail') counts.fail += 1;
+        else if (status === 'skip') counts.skip += 1;
+        else counts.unfinished += 1;
+      }
+      const finished = tests.length - counts.unfinished;
+      const pct = tests.length ? Math.round((finished / tests.length) * 100) : 0;
+      document.getElementById('progressPct').textContent = pct + '%';
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('passCount').textContent = counts.pass;
+      document.getElementById('failCount').textContent = counts.fail;
+      document.getElementById('skipCount').textContent = counts.skip;
+      document.getElementById('unfinishedCount').textContent = counts.unfinished;
+
+      for (const section of CHECKLIST_SECTIONS) {
+        const complete = section.tests.filter(test => testStatus(test.id) !== 'untested').length;
+        const counter = document.getElementById(`counter-${section.id}`);
+        if (counter) {
+          counter.textContent = `${complete}/${section.tests.length}`;
+          counter.classList.toggle('done', complete === section.tests.length);
+        }
+      }
+      updateSummary();
+    }
+
+    function getReportRows() {
+      return allTests().map(test => ({
+        section: test.sectionTitle,
+        title: test.title,
+        status: STATUS[testStatus(test.id)].label,
+        statusKey: testStatus(test.id),
+        note: state.notes[test.id] || '',
+        setup: test.setup || ''
+      }));
+    }
+
+    function updateSummary() {
+      const rows = getReportRows();
+      const testedRows = rows.filter(row => row.statusKey !== 'untested');
+      const failures = rows.filter(row => row.statusKey === 'fail');
+      const skipped = rows.filter(row => row.statusKey === 'skip');
+      const summaryList = document.getElementById('summaryList');
+      if (testedRows.length === 0) {
+        summaryList.innerHTML = '<p style="color:var(--muted);margin:0">No tests have been marked yet for this date.</p>';
+        return;
+      }
+      const priority = [...failures, ...skipped, ...rows.filter(row => row.statusKey === 'untested')].slice(0, 14);
+      summaryList.innerHTML = priority.map(row => {
+        const icon = row.statusKey === 'fail' ? '✕' : row.statusKey === 'skip' ? '○' : row.statusKey === 'untested' ? '□' : '✓';
+        const cls = row.statusKey === 'fail' ? 'fail' : row.statusKey === 'skip' ? 'skip' : '';
+        return `<div class="summary-row"><span>${icon}</span><span>${escapeHtml(row.title)}</span><span class="status-badge ${cls}">${escapeHtml(row.status)}</span>${row.note ? `<div class="summary-note">Note: ${escapeHtml(row.note)}</div>` : ''}</div>`;
+      }).join('') || '<p style="color:var(--success);margin:0;font-weight:800">No failures, skips, or unfinished tests recorded.</p>';
+    }
+
+    function buildTextReport() {
+      const rows = getReportRows();
+      const counts = rows.reduce((acc, row) => {
+        acc[row.statusKey] = (acc[row.statusKey] || 0) + 1;
+        return acc;
+      }, {});
+      let text = `WittyForm QA Daily Report — ${DATE_FMT.format(new Date(currentDate + 'T12:00:00'))}\n`;
+      text += `Environment: ${BASE}\n`;
+      text += '='.repeat(72) + '\n\n';
+      text += `Passed: ${counts.pass || 0}\nFailed: ${counts.fail || 0}\nSkipped: ${counts.skip || 0}\nUnfinished: ${counts.untested || 0}\n\n`;
+      let currentSection = '';
+      for (const row of rows) {
+        if (row.section !== currentSection) {
+          currentSection = row.section;
+          text += `\n## ${currentSection}\n`;
+        }
+        const icon = row.statusKey === 'pass' ? '+' : row.statusKey === 'fail' ? 'X' : row.statusKey === 'skip' ? '-' : '?';
+        text += `[${icon}] ${row.title} — ${row.status}\n`;
+        if (row.note && (row.statusKey === 'fail' || row.statusKey === 'skip')) {
+          text += `    Note: ${row.note.replace(/\n/g, '\n          ')}\n`;
+        }
+      }
+      return text.trim() + '\n';
+    }
+
+    async function copyResults() {
+      const text = buildTextReport();
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('Copied today’s WittyForm QA report.');
+      } catch {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        textarea.remove();
+        showToast('Copied using fallback clipboard method.');
+      }
+    }
+
+    function buildPrintReport() {
+      const rows = getReportRows();
+      const dateLabel = DATE_FMT.format(new Date(currentDate + 'T12:00:00'));
+      const counts = rows.reduce((acc, row) => {
+        acc[row.statusKey] = (acc[row.statusKey] || 0) + 1;
+        return acc;
+      }, {});
+      const tableRows = rows.map(row => `
+        <tr>
+          <td>${escapeHtml(row.section)}</td>
+          <td>${escapeHtml(row.title)}${row.note && (row.statusKey === 'fail' || row.statusKey === 'skip') ? `<div class="print-note">Note: ${escapeHtml(row.note)}</div>` : ''}</td>
+          <td>${escapeHtml(row.status)}</td>
+        </tr>`).join('');
+      return `
+        <h1>WittyForm QA Daily Report</h1>
+        <p><strong>Date:</strong> ${escapeHtml(dateLabel)}<br><strong>Environment:</strong> ${escapeHtml(BASE)}</p>
+        <p><strong>Passed:</strong> ${counts.pass || 0} &nbsp; <strong>Failed:</strong> ${counts.fail || 0} &nbsp; <strong>Skipped:</strong> ${counts.skip || 0} &nbsp; <strong>Unfinished:</strong> ${counts.untested || 0}</p>
+        <h2>Results</h2>
+        <table><thead><tr><th>Section</th><th>Test</th><th>Status</th></tr></thead><tbody>${tableRows}</tbody></table>`;
+    }
+
+    function downloadPDF() {
+      const rows = getReportRows();
+      const dateLabel = DATE_FMT.format(new Date(currentDate + 'T12:00:00'));
+      const fileDate = currentDate;
+      if (window.jspdf && window.jspdf.jsPDF) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 42;
+        let y = 52;
+
+        function addPageIfNeeded(extra = 40) {
+          if (y + extra > pageHeight - margin) {
+            doc.addPage();
+            y = margin;
+          }
+        }
+        function write(text, size = 10, style = 'normal', color = [26, 24, 20], maxWidth = pageWidth - margin * 2) {
+          doc.setFont('helvetica', style);
+          doc.setFontSize(size);
+          doc.setTextColor(...color);
+          const lines = doc.splitTextToSize(String(text), maxWidth);
+          addPageIfNeeded(lines.length * (size + 3));
+          doc.text(lines, margin, y);
+          y += lines.length * (size + 4);
+        }
+
+        doc.setFillColor(180, 83, 9);
+        doc.rect(0, 0, pageWidth, 96, 'F');
+        doc.setTextColor(255,255,255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(24);
+        doc.text('WittyForm QA Daily Report', pageWidth / 2, 42, { align: 'center' });
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`${dateLabel} · ${BASE}`, pageWidth / 2, 66, { align: 'center' });
+        y = 126;
+
+        const counts = rows.reduce((acc, row) => { acc[row.statusKey] = (acc[row.statusKey] || 0) + 1; return acc; }, {});
+        write(`Summary: ${counts.pass || 0} passed · ${counts.fail || 0} failed · ${counts.skip || 0} skipped · ${counts.untested || 0} unfinished`, 12, 'bold', [26,24,20]);
+        y += 8;
+
+        let currentSection = '';
+        rows.forEach(row => {
+          if (row.section !== currentSection) {
+            currentSection = row.section;
+            y += 8;
+            write(row.section, 14, 'bold', [180,83,9]);
+          }
+          const color = row.statusKey === 'pass' ? [21,128,61] : row.statusKey === 'fail' ? [185,28,28] : row.statusKey === 'skip' ? [82,82,91] : [104,98,88];
+          write(`${row.status}: ${row.title}`, 10, 'bold', color);
+          if (row.note && (row.statusKey === 'fail' || row.statusKey === 'skip')) {
+            write(`Note: ${row.note}`, 9, 'normal', [185,28,28]);
+          }
+          y += 3;
+        });
+
+        doc.save(`wittyform-qa-report-${fileDate}.pdf`);
+        showToast('PDF report downloaded.');
+      } else {
+        document.getElementById('printReport').innerHTML = buildPrintReport();
+        window.print();
+        showToast('PDF library was unavailable, so the printable report opened. Save as PDF from the print dialog.');
+      }
+    }
+
+    function resetAll() {
+      const label = DATE_FMT.format(new Date(currentDate + 'T12:00:00'));
+      if (!confirm(`Reset all WittyForm QA results and notes for ${label}? This only affects this browser and date.`)) return;
+      localStorage.removeItem(stateKey());
+      state = { statuses: {}, notes: {}, updatedAt: null };
+      render();
+      showToast('Checklist reset for selected date.');
+    }
+
+    function showToast(message) {
+      toastEl.textContent = message;
+      toastEl.classList.add('show');
+      window.clearTimeout(showToast._timer);
+      showToast._timer = window.setTimeout(() => toastEl.classList.remove('show'), 2600);
+    }
+
+    qaDateEl.addEventListener('change', () => {
+      if (!qaDateEl.value) return;
+      currentDate = qaDateEl.value;
+      loadState();
+      render();
+      showToast('Loaded checklist for ' + DATE_FMT.format(new Date(currentDate + 'T12:00:00')) + '.');
+    });
+    document.getElementById('copyBtn').addEventListener('click', copyResults);
+    document.getElementById('pdfBtn').addEventListener('click', downloadPDF);
+    document.getElementById('resetBtn').addEventListener('click', resetAll);
+
+    loadState();
+    render();
+  </script>
+</body>
+</html>
