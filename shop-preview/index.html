@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WittyForm shop form preview</title>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; background: #f7f5f0; color: #1a1814;
+         font: 16px/1.6 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1 { font-size: 30px; letter-spacing: -0.02em; margin: 0 0 8px; }
+  .lede { color: #6b665e; margin: 0 0 36px; }
+  figure { margin: 0 0 40px; }
+  figcaption { font-weight: 700; margin-bottom: 10px; }
+  figcaption span { display: block; font-weight: 400; color: #6b665e; font-size: 14.5px; }
+  img { max-width: 100%; height: auto; display: block; border: 1px solid #e4e0d8;
+        border-radius: 12px; background: #fff; }
+  .phones { display: flex; flex-wrap: wrap; gap: 24px; }
+  .phones figure { flex: 1 1 280px; }
+  .note { border-left: 3px solid #b45309; padding: 2px 0 2px 14px; margin: 0 0 36px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Shop form preview</h1>
+  <p class="lede">A WittyForm order form with four products, a discount code and three delivery
+     choices, filled in the way a customer would fill it.</p>
+
+  <figure>
+    <figcaption>1. What the customer lands on
+      <span>Product cards with a picture, a price, a crossed out old price, and Add to order.</span>
+    </figcaption>
+    <img src="1-products-desktop.png" alt="Product grid on a desktop screen" />
+  </figure>
+
+  <figure>
+    <figcaption>2. Three tees and a hoodie in the order
+      <span>Chosen cards are ticked and get a quantity box. The bar underneath keeps a running total.</span>
+    </figcaption>
+    <img src="2-cart-desktop.png" alt="Two products chosen, with quantity steppers" />
+  </figure>
+
+  <figure>
+    <figcaption>3. The order, itemised
+      <span>Each line with its quantity, then the total.</span>
+    </figcaption>
+    <img src="3-order-summary.png" alt="Order summary step" />
+  </figure>
+
+  <figure>
+    <figcaption>4. Delivery, before a choice is made
+      <span>The form will not let the order through until a delivery method is picked.</span>
+    </figcaption>
+    <img src="4-delivery-step.png" alt="Delivery options with no choice made yet" />
+  </figure>
+
+  <figure>
+    <figcaption>5. Everything priced
+      <span>Subtotal, the discount the code earned, the delivery charge, and the total. The pay
+      button and the submit button now agree with it.</span>
+    </figcaption>
+    <img src="5-delivery-chosen.png" alt="Full breakdown with express delivery chosen" />
+  </figure>
+
+  <div class="phones">
+    <figure>
+      <figcaption>6. On a phone<span>One product per row.</span></figcaption>
+      <img src="6-products-phone.png" alt="Product list on a phone" />
+    </figure>
+    <figure>
+      <figcaption>7. Picking on a phone<span>Same quantity controls, thumb sized.</span></figcaption>
+      <img src="7-cart-phone.png" alt="Two products chosen on a phone" />
+    </figure>
+  </div>
+
+  <p class="note">The last picture is the bug this preview found, before it was fixed: the
+     breakdown said $129.00 and the button underneath said $130.00, because the button added up
+     the basket by itself and ignored the discount and the delivery charge.</p>
+
+  <figure>
+    <figcaption>8. Before the fix<span>Two different totals on one screen.</span></figcaption>
+    <img src="8-before-fix-two-totals.png" alt="The old screen showing two different totals" />
+  </figure>
+</div>
+</body>
+</html>
